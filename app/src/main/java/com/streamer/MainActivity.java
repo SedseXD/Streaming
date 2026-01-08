@@ -6,8 +6,11 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,9 +20,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-// CHANGED: New reliable imports
-import com.arthenica.mobileffmpeg.Config;
-import com.arthenica.mobileffmpeg.FFmpeg;
+// Using FFmpeg-Kit 5.1 LTS imports
+import com.arthenica.ffmpegkit.FFmpegKit;
+import com.arthenica.ffmpegkit.FFmpegKitConfig;
+import com.arthenica.ffmpegkit.FFmpegSession;
+import com.arthenica.ffmpegkit.ReturnCode;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -32,13 +37,13 @@ public class MainActivity extends AppCompatActivity {
     private Button startBtn, stopBtn;
     
     private Uri selectedUri;
+    private FFmpegSession currentSession;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize Views
         streamUrlInput = findViewById(R.id.streamUrlInput);
         streamKeyInput = findViewById(R.id.streamKeyInput);
         selectedFileText = findViewById(R.id.selectedFileText);
@@ -48,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         stopBtn = findViewById(R.id.stopBtn);
         Button pickFileBtn = findViewById(R.id.pickFileBtn);
 
-        // Check Permissions
         checkPermissions();
 
         pickFileBtn.setOnClickListener(v -> openFilePicker());
@@ -86,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PICK_FILE_REQUEST && resultCode == RESULT_OK && data != null) {
             selectedUri = data.getData();
             getContentResolver().takePersistableUriPermission(selectedUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            selectedFileText.setText("Selected: " + selectedUri.getPath());
+            selectedFileText.setText("File selected successfully.");
         }
     }
 
@@ -104,13 +108,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String fullUrl = baseUrl + key;
-        
-        // CHANGED: Get path using the safe mobile-ffmpeg helper
-        String filePath = FFmpeg.getSafParameterForRead(this, selectedUri);
+        String filePath = FFmpegKitConfig.getSafParameterForRead(this, selectedUri);
 
-        String scale = "1920:1080";
+        String scale = "1280:720"; // Lowered default for better mobile performance
         if (resolutionGroup.getCheckedRadioButtonId() == R.id.radio916) {
-            scale = "1080:1920"; 
+            scale = "720:1280"; 
         }
 
         String mimeType = getContentResolver().getType(selectedUri);
@@ -119,45 +121,46 @@ public class MainActivity extends AppCompatActivity {
         StringBuilder cmd = new StringBuilder();
 
         if (isImage) {
+            // Command for looping an image + silent audio
             cmd.append("-re -loop 1 -i ").append(filePath)
                .append(" -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 ");
         } else {
+            // Command for looping a video indefinitely
             cmd.append("-re -stream_loop -1 -i ").append(filePath).append(" ");
         }
 
-        cmd.append("-c:v libx264 -preset ultrafast -b:v 4000k -maxrate 4000k -bufsize 8000k ")
+        // Encoding settings for RTMP stream
+        cmd.append("-c:v libx264 -preset ultrafast -b:v 2500k -maxrate 2500k -bufsize 5000k ")
            .append("-pix_fmt yuv420p -g 60 -vf scale=").append(scale)
            .append(" -c:a aac -b:a 128k -ar 44100 ")
            .append("-f flv ").append(fullUrl);
 
-        logText.setText("Starting stream...");
+        logText.setText("Stream initializing...");
         startBtn.setEnabled(false);
         stopBtn.setEnabled(true);
 
-        // CHANGED: Use the mobile-ffmpeg execution method
-        FFmpeg.executeAsync(cmd.toString(), (executionId, returnCode) -> {
+        currentSession = FFmpegKit.executeAsync(cmd.toString(), session -> {
+            ReturnCode returnCode = session.getReturnCode();
             runOnUiThread(() -> {
-                if (returnCode == 0) { // 0 is success in this library
-                    logText.setText("Stream finished cleanly.");
-                } else if (returnCode == 255) { // 255 is cancel
+                if (returnCode.isSuccess()) {
+                    logText.setText("Stream finished.");
+                } else if (returnCode.isCancel()) {
                     logText.setText("Stream stopped by user.");
                 } else {
-                    logText.setText("Stream Failed (Code " + returnCode + ")");
-                    Toast.makeText(MainActivity.this, "Stream Failed!", Toast.LENGTH_LONG).show();
+                    logText.setText("Error: " + returnCode.toString());
                 }
                 startBtn.setEnabled(true);
                 stopBtn.setEnabled(false);
             });
-        });
-        
-        // CHANGED: Log callback setup
-        Config.enableLogCallback(message -> {
-            runOnUiThread(() -> logText.setText(message.getText()));
+        }, log -> {
+            runOnUiThread(() -> logText.setText(log.getMessage()));
         });
     }
 
     private void stopStream() {
-        FFmpeg.cancel(); // CHANGED: Simple cancel for mobile-ffmpeg
-        logText.setText("Stopping...");
+        if (currentSession != null) {
+            FFmpegKit.cancel(currentSession.getSessionId());
+            logText.setText("Stopping stream...");
+        }
     }
 }
