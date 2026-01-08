@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:padding="16dp"
+    android:background="#121212">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Loop Streamer"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="20dp"/>
+
+        <EditText
+            android:id="@+id/streamUrlInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="RTMP URL (Default YouTube)"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#888888"
+            android:text="rtmp://a.rtmp.youtube.com/live2/"
+            android:minHeight="48dp"/>
+
+        <EditText
+            android:id="@+id/streamKeyInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Paste Stream Key Here"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#888888"
+            android:inputType="textPassword"
+            android:minHeight="48dp"
+            android:layout_marginBottom="10dp"/>
+
+        <Button
+            android:id="@+id/pickFileBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Video or Image"
+            android:backgroundTint="#2196F3"/>
+
+        <TextView
+            android:id="@+id/selectedFileText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No file selected"
+            android:textColor="#AAAAAA"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Target Resolution"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="10dp"/>
+
+        <RadioGroup
+            android:id="@+id/resolutionGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <RadioButton
+                android:id="@+id/radio169"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="16:9 (Landscape)"
+                android:textColor="#FFFFFF"
+                android:checked="true"
+                android:layout_marginEnd="20dp"/>
+
+            <RadioButton
+                android:id="@+id/radio916"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="9:16 (Shorts)"
+                android:textColor="#FFFFFF"/>
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/startBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="START 24/7 LOOP"
+            android:backgroundTint="#4CAF50"
+            android:minHeight="60dp"/>
+
+        <Button
+            android:id="@+id/stopBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="STOP STREAM"
+            android:backgroundTint="#F44336"
+            android:enabled="false"
+            android:layout_marginTop="10dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Logs:"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="20dp"/>
+
+        <TextView
+            android:id="@+id/logText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#00FF00"
+            android:typeface="monospace"
+            android:textSize="10sp"
+            android:text="Waiting..."
+            android:background="#000000"
+            android:padding="5dp"/>
+
+    </LinearLayout>
+</ScrollView>
