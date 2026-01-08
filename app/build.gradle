@@ -31,6 +31,6 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    // The critical library for streaming
-    implementation 'com.arthenica:ffmpeg-kit-full:6.0-2'
+    // CHANGE THIS LINE: Use the stable 4.5.1-1 version found on Maven Central
+    implementation 'com.arthenica:ffmpeg-kit-full:4.5.1-1'
 }
